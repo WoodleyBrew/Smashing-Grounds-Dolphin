@@ -8,7 +8,11 @@
 #define DIR_SEP_CHR '/'
 
 // The current working directory
+#ifdef __APPLE__
+#define ROOT_DIR "_NSGetExecutablePath"
+#else
 #define ROOT_DIR "."
+#endif
 
 // The normal user directory
 #ifdef _WIN32
@@ -96,7 +100,7 @@
 #define SHADERCACHE_LEGACY_DIR "ShaderCache"
 
 // The theme directory used by default
-#define DEFAULT_THEME_DIR "Clean Blue"
+#define DEFAULT_THEME_DIR "Clean Emerald"
 
 // Filenames
 // Files in the directory returned by GetUserPath(D_CONFIG_IDX)
@@ -146,7 +150,7 @@
 
 #define WII_STATE "state.dat"
 
-#define WII_SD_CARD_IMAGE "WiiSD.raw"
+#define WII_SD_CARD_IMAGE "sd.raw"
 #define WII_BTDINF_BACKUP "btdinf.bak"
 
 #define WII_SETTING "setting.txt"
