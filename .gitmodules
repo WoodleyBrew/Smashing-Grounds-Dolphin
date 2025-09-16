@@ -38,9 +38,17 @@
 	path = Externals/cubeb/cubeb
 	url = https://github.com/mozilla/cubeb.git
 	shallow = true
+[submodule "Externals/implot/implot"]
+	path = Externals/implot/implot
+	url = https://github.com/epezent/implot.git
+	shallow = true
 [submodule "Externals/gtest"]
 	path = Externals/gtest
 	url = https://github.com/google/googletest.git
+	shallow = true
+[submodule "Externals/rcheevos/rcheevos"]
+	path = Externals/rcheevos/rcheevos
+	url = https://github.com/RetroAchievements/rcheevos.git
 	shallow = true
 [submodule "Externals/libadrenotools"]
 	path = Externals/libadrenotools
@@ -90,3 +98,9 @@
 	path = Externals/zstd/zstd
 	url = https://github.com/facebook/zstd.git
 	shallow = true
+[submodule "Externals/watcher/watcher"]
+	path = Externals/watcher/watcher
+	url = https://github.com/e-dant/watcher.git
+[submodule "Externals/miniupnpc/miniupnp"]
+	path = Externals/miniupnpc/miniupnp
+	url = https://github.com/miniupnp/miniupnp.git
