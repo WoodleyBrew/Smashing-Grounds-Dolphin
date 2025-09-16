@@ -16,13 +16,14 @@ class PathPane final : public QWidget
   Q_OBJECT
 public:
   explicit PathPane(QWidget* parent = nullptr);
+  void BrowseDefaultGame();
 
 private:
   void Browse();
-  void BrowseDefaultGame();
   void BrowseWiiNAND();
   void BrowseDump();
   void BrowseLoad();
+  void BrowseLauncher();
   void BrowseResourcePack();
   void BrowseWFS();
   QGroupBox* MakeGameFolderBox();
@@ -36,6 +37,7 @@ private:
   QLineEdit* m_nand_edit;
   QLineEdit* m_dump_edit;
   QLineEdit* m_load_edit;
+  QLineEdit* m_launcher_edit;
   QLineEdit* m_resource_pack_edit;
   QLineEdit* m_wfs_edit;
 

@@ -31,6 +31,8 @@ enum Hotkey
   HK_UNLOCK_CURSOR,
   HK_CENTER_MOUSE,
   HK_ACTIVATE_CHAT,
+  HK_COLLAPSE_CHAT,
+  HK_EXPAND_CHAT,
   HK_REQUEST_GOLF_CONTROL,
 #ifdef USE_RETRO_ACHIEVEMENTS
   HK_OPEN_ACHIEVEMENTS,
@@ -233,7 +235,7 @@ class HotkeyManager : public ControllerEmu::EmulatedController
 {
 public:
   HotkeyManager();
-  ~HotkeyManager();
+  ~HotkeyManager() override;
 
   void GetInput(HotkeyStatus* hk, bool ignore_focus);
   std::string GetName() const override;

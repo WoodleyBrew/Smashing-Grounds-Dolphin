@@ -16,7 +16,7 @@ class HotkeyScheduler : public QObject
   Q_OBJECT
 public:
   explicit HotkeyScheduler();
-  ~HotkeyScheduler();
+  ~HotkeyScheduler() override;
 
   void Start();
   void Stop();
@@ -28,6 +28,8 @@ signals:
   void ExitHotkey();
   void UnlockCursor();
   void ActivateChat();
+  void CollapseChat();
+  void ExpandChat();
   void RequestGolfControl();
   void FullScreenHotkey();
   void StopHotkey();

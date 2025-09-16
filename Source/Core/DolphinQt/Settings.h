@@ -44,7 +44,7 @@ public:
   Settings(Settings&&) = delete;
   Settings& operator=(Settings&&) = delete;
 
-  ~Settings();
+  ~Settings() override;
 
   void UnregisterDevicesChangedCallback();
 
@@ -100,6 +100,8 @@ public:
   void SetPreferredView(bool list);
   QString GetDefaultGame() const;
   void SetDefaultGame(QString path);
+  QString GetLauncherPath() const;
+  void SetLauncherPath(QString path);
   void RefreshGameList();
   void NotifyRefreshGameListStarted();
   void NotifyRefreshGameListComplete();
@@ -191,6 +193,7 @@ signals:
   void PathAdded(const QString&);
   void PathRemoved(const QString&);
   void DefaultGameChanged(const QString&);
+  void LauncherPathChanged(const QString&);
   void GameListRefreshRequested();
   void GameListRefreshStarted();
   void GameListRefreshCompleted();

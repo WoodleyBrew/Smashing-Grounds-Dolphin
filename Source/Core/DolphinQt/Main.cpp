@@ -23,6 +23,7 @@
 #include "Common/Config/Config.h"
 #include "Common/MsgHandler.h"
 #include "Common/ScopeGuard.h"
+#include "Common/StringUtil.h"
 
 #include "Core/Boot/Boot.h"
 #include "Core/Config/MainSettings.h"
@@ -37,6 +38,7 @@
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
+#include "DolphinQt/Settings/PathPane.h"
 #include "DolphinQt/Translation.h"
 #include "DolphinQt/Updater.h"
 
@@ -92,7 +94,6 @@ static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no
       return QMessageBox::NoIcon;
     }());
 
-    SetQWidgetWindowDecorations(&message_box);
     const int button = message_box.exec();
     if (button == QMessageBox::Yes)
       return true;
@@ -153,8 +154,8 @@ int main(int argc, char* argv[])
   // from happening.
   // For more information: https://bugs.dolphin-emu.org/issues/11807
   const char* current_qt_platform = getenv("QT_QPA_PLATFORM");
-  const bool replace_qt_platform =
-      (current_qt_platform && strcasecmp(current_qt_platform, "wayland") == 0);
+  const bool replace_qt_platform = current_qt_platform != nullptr &&
+                                   Common::CaseInsensitiveContains(current_qt_platform, "wayland");
   setenv("QT_QPA_PLATFORM", "xcb", replace_qt_platform);
 #endif
 
@@ -170,6 +171,8 @@ int main(int argc, char* argv[])
   const std::vector<std::string> args = parser->args();
 
 #ifdef _WIN32
+  QtUtils::InstallWindowDecorationFilter(&app);
+
   FreeConsole();
 #endif
 
@@ -263,26 +266,29 @@ int main(int argc, char* argv[])
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
     if (!Config::Get(Config::MAIN_ANALYTICS_PERMISSION_ASKED))
       {
-        ModalMessageBox firstboot_prompt(&win);
-
+        QMessageBox firstboot_prompt(&win);
         firstboot_prompt.setIcon(QMessageBox::Information);
-        firstboot_prompt.setStandardButtons(QMessageBox::Ok);
         firstboot_prompt.setWindowTitle(QObject::tr("First Boot Prompt"));
         firstboot_prompt.setText(
             QObject::tr("New installation detected; read below for setup tips!"));
         firstboot_prompt.setInformativeText(QObject::tr(
-            "Make sure to set your Brawl ISO as default before playing "
-            "in order for the game to load. \n"
-            "If you are on macOS or Linux, also ensure your launcher and sd.raw "
-            "paths are set as well, as they may not be properly set by default. \n\n"
             "If you are on modern hardware, we recommend setting Ubershaders "
             "to either Hybrid or Exclusive mode in Graphics > General for a "
             "stutter-free experience while playing. \n\n"
-            "Thank you for playing! "
-            "The next text box will ask you to opt in to Dolphin's analytics collection."));
+            "Select your Brawl ISO using the button below to allow the mod to load properly. \n"
+            "You can also set this path later in Config > Paths.\n\n"
+            "Thank you for playing!"));
+        QAbstractButton* pButtonYes = firstboot_prompt.addButton(QObject::tr("Select ISO"), QMessageBox::YesRole);
+        firstboot_prompt.addButton(QObject::tr("Skip"), QMessageBox::NoRole);
 
-        SetQWidgetWindowDecorations(&firstboot_prompt);
-        const int answer = firstboot_prompt.exec();
+        firstboot_prompt.exec();
+
+        if (firstboot_prompt.clickedButton() == pButtonYes)
+        {
+          PathPane path_pane;
+          path_pane.BrowseDefaultGame();
+        }
+
     }
 #endif
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
@@ -306,7 +312,6 @@ int main(int argc, char* argv[])
                       "This authorization can be revoked at any time through Dolphin's "
                       "settings."));
 
-      SetQWidgetWindowDecorations(&analytics_prompt);
       const int answer = analytics_prompt.exec();
 
       Config::SetBase(Config::MAIN_ANALYTICS_PERMISSION_ASKED, true);
