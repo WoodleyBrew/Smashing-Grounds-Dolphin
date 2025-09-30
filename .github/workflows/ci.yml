@@ -3,6 +3,30 @@ name: Project+ Dolphin Builder
 on: [push, pull_request]
 
 jobs: 
+  build_windows_x86_64:
+    name: Windows Build
+    runs-on: windows-latest
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+      with:
+        repository: Motobug/Smashing-Grounds-Dolphin
+        ref: main
+        fetch-depth: 0
+    - name: Setup Submodules
+      run: git config --global --add safe.directory . && git submodule update --init --recursive
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v1.0.2
+      with:
+        vs-version: '16.6.2'
+    - name: Build
+      run: msbuild "Source\dolphin-emu.sln" /verbosity:minimal /property:Configuration=Release /property:Platform=x64
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Project-Plus-Dolphin-Windows-${{ env.DOLPHINVER }}
+        path: Binary/x64/
+        
   build_macos:
     name: macOS Build
     runs-on: macos-14
@@ -17,7 +41,10 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
+          repository: Project-Plus-Development-Team/Project-Plus-Dolphin
+          ref: master
           submodules: recursive
+          fetch-depth: 0
 
       - name: Install Packages
         env:
@@ -91,6 +118,7 @@ jobs:
             -DCMAKE_C_COMPILER_LAUNCHER=ccache
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
             -DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON
+            -DCMAKE_POLICY_VERSION_MINIMUM=3.5
             -DUSE_SYSTEM_LIBS=OFF
             -DUSE_SYSTEM_BZIP2=ON
             -DUSE_SYSTEM_CURL=ON
@@ -112,13 +140,8 @@ jobs:
                 "${COMMON_ARGS[@]}" \
                 -B build-arm .
 
-      - name: Dolphin-Build Number
-        run: |
-          export LASTCOMMIT=$(git log --pretty=format:%H -1)
-          export DOLPHINVER="v3.1.2-SL9"
-          echo "DOLPHIN Build $DOLPHINVER"
-          echo "DOLPHINVER=$DOLPHINVER" >> $GITHUB_ENV
-          gsed -i "s|\${DOLPHIN_WC_DESCRIBE}|$DOLPHINVER|g" Source/Core/Common/scmrev.h.in
+      - name: Purge .git for space reasons
+        run: rm -rf /home/runner/work/Smashing-Grounds-Dolphin-src/.git
       - name: Build Dolphin (x86_64)
         working-directory: build
         run: |
@@ -128,14 +151,14 @@ jobs:
           ninja project-plus-dolphin
           ccache -s
 
-      - name: Build Dolphin (arm64)
-        working-directory: build-arm
-        run: |
-          ccache -p
-          ccache -s
-          ccache -z
-          ninja project-plus-dolphin
-          ccache -s
+      #- name: Build Dolphin (arm64)
+      #  working-directory: build-arm
+      #  run: |
+      #    ccache -p
+      #    ccache -s
+      #    ccache -z
+      #    ninja project-plus-dolphin
+      #    ccache -s 
 
       - name: Prepare Build Artifacts
         id: create-artifact
@@ -145,7 +168,7 @@ jobs:
           PR_NUM: ${{ github.event.pull_request.number }}
           PR_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          lipo -create build/Binaries/DolphinQt.app/Contents/MacOS/DolphinQt build-arm/Binaries/DolphinQt.app/Contents/MacOS/DolphinQt -o dolphin
+          lipo -create build/Binaries/DolphinQt.app/Contents/MacOS/DolphinQt -o dolphin # build-arm/Binaries/DolphinQt.app/Contents/MacOS/DolphinQt
           mv dolphin build/Binaries/DolphinQt.app/Contents/MacOS/DolphinQt
           TAG="$(git tag --points-at HEAD)"
           if [ ! -z "$TAG" ]; then
@@ -157,7 +180,7 @@ jobs:
           else
             SUFFIX="sha[$(git rev-parse --short HEAD)]"
           fi
-          APPNAME="ProjectPlus-$SUFFIX"
+          APPNAME="Project-Plus-Dolphin-macOS-$SUFFIX"
           mv build/Binaries/DolphinQt.app "$APPNAME.app"
           tar --options xz:compression-level=9 -cvJf "$APPNAME.tar.xz" "$APPNAME.app"
           echo "name=$APPNAME" >> "$GITHUB_OUTPUT"
@@ -168,25 +191,6 @@ jobs:
           name: ${{ steps.create-artifact.outputs.name }}
           path: "*.tar.xz"
           
-  build_windows_x86_64:
-    name: Windows Build
-    runs-on: windows-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: Setup Submodules
-      run: git config --global --add safe.directory . && git submodule update --init --recursive
-    - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v1.0.2
-      with:
-        vs-version: '16.6.2'
-    - name: Build
-      run: msbuild "Source\dolphin-emu.sln" /verbosity:minimal /property:Configuration=Release /property:Platform=x64
-    - name: Upload Build Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: Project-Plus-Dolphin-windows-x86_64
-        path: Binary/x64/
-        
   build_flatpak:
     name: Flatpak Build
     runs-on: ubuntu-latest
@@ -219,6 +223,7 @@ jobs:
       with:
         repository: Motobug/Smashing-Grounds-Dolphin
         ref: main
+        fetch-depth: 0
 
     - name: Checkout Submodules
       if: steps.cache-submodules.outputs.cache-hit != 'true'
@@ -259,13 +264,8 @@ jobs:
         libbz2-dev liblzo2-dev libxi-dev libavcodec-dev libudev-dev libusb-1.0-0-dev libevdev-dev libc6-dev libhidapi-dev libavformat-dev libavdevice-dev \
         libfmt-dev libwayland-dev libxrandr-dev libglu1-mesa-dev libcurl4-openssl-dev x11-utils zenity wget curl git gettext ccache make cmake ninja-build \
         libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-icccm4 libxcb-image0-dev libxcb-cursor-dev 
-    - name: Dolphin-Build Number
-      run: |
-        export LASTCOMMIT=$(git log --pretty=format:%H -1)
-        export DOLPHINVER="v3.1.2-SL9"
-        echo "DOLPHIN Build $DOLPHINVER"
-        echo "DOLPHINVER=$DOLPHINVER" >> $GITHUB_ENV
-        sed -i "s|\${DOLPHIN_WC_DESCRIBE}|$DOLPHINVER|g" Source/Core/Common/scmrev.h.in
+    - name: Purge .git for space reasons
+      run: rm -rf /home/runner/work/Smashing-Grounds-Dolphin-src/.git
     - name: Update Patchelf
       run: |
         PATCHELFVER=0.14.5
@@ -323,7 +323,7 @@ jobs:
         chmod a+x ./squashfs-root/runtime
         chmod a+x ./squashfs-root/AppRun-patched
         chmod a+x ./squashfs-root/update.sh
-        export UPD_INFO="gh-releases-zsync|Motobug|Smashing-Grounds-Dolphin|continuous|Project+_Dolphin-x86_64.AppImage.zsync"
+        export UPD_INFO="gh-releases-zsync|Motobug|Motobug/Smashing-Grounds-Dolphin|continuous|Project+_Dolphin-x86_64.AppImage.zsync"
         /tmp/squashfs-root/AppRun --appdir="$GITHUB_WORKSPACE"/squashfs-root/ --plugin qt -d "$GITHUB_WORKSPACE"/squashfs-root/project-plus-dolphin.desktop -i "$GITHUB_WORKSPACE"/squashfs-root/project-plus-dolphin.svg \
         --exclude-library=libglib* --output appimage
         ls . | grep *.AppImage
@@ -339,7 +339,7 @@ jobs:
     - name: Upload Static Build
       uses: actions/upload-artifact@v4
       with:
-        name: Project-Plus-Dolphin_${{ env.DOLPHINVER }}
+        name: Project-Plus-Dolphin-AppImage-${{ env.DOLPHINVER }}
         path: uploads/
       env:
         DEFAULT_BRANCH: git-actions
