@@ -9,7 +9,7 @@
 
 namespace Common
 {
-#define EMULATOR_NAME "Motobutts"
+#define EMULATOR_NAME "Motobuttss"
 
 #ifdef _DEBUG
 #define BUILD_TYPE_STR "Debug "
