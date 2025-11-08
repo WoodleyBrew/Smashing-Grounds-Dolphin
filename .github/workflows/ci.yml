@@ -10,7 +10,7 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v2
       with:
-        repository: Motobug/Smashing-Grounds-Dolphin
+        repository: WoodleyBrew/Smashing-Grounds-Dolphin
         ref: main
         fetch-depth: 0
     - name: Setup Submodules
@@ -41,7 +41,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          repository: Motobug/Smashing-Grounds-Dolphin
+          repository: WoodleyBrew/Smashing-Grounds-Dolphin
           ref: main
           submodules: recursive
           fetch-depth: 0
@@ -221,7 +221,7 @@ jobs:
     - name: Checkout Upstream Repo
       uses: actions/checkout@v4
       with:
-        repository: Motobug/Smashing-Grounds-Dolphin
+        repository: WoodleyBrew/Smashing-Grounds-Dolphin
         ref: main
         fetch-depth: 0
 
@@ -323,7 +323,7 @@ jobs:
         chmod a+x ./squashfs-root/runtime
         chmod a+x ./squashfs-root/AppRun-patched
         chmod a+x ./squashfs-root/update.sh
-        export UPD_INFO="gh-releases-zsync|Motobug|Motobug/Smashing-Grounds-Dolphin|continuous|Project+_Dolphin-x86_64.AppImage.zsync"
+        export UPD_INFO="gh-releases-zsync|WoodleyBrew|WoodleyBrew/Smashing-Grounds-Dolphin|continuous|Project+_Dolphin-x86_64.AppImage.zsync"
         /tmp/squashfs-root/AppRun --appdir="$GITHUB_WORKSPACE"/squashfs-root/ --plugin qt -d "$GITHUB_WORKSPACE"/squashfs-root/project-plus-dolphin.desktop -i "$GITHUB_WORKSPACE"/squashfs-root/project-plus-dolphin.svg \
         --exclude-library=libglib* --output appimage
         ls . | grep *.AppImage
